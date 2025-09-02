@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     resolveAlias: {
       "@": "./src",
+      "@/*": "./src/*",
     },
   },
 };
