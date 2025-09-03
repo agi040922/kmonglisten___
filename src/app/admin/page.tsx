@@ -41,7 +41,7 @@ export default function AdminPage() {
   const [messages, setMessages] = useState<VoiceMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<Pagination | null>(null);
-  // const [selectedStatus, setSelectedStatus] = useState<string>('all'); // 현재 사용되지 않음
+  const [selectedStatus] = useState<string>('all'); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [editingMessage, setEditingMessage] = useState<VoiceMessage | null>(null);
   const [editText, setEditText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -102,7 +102,7 @@ export default function AdminPage() {
       if (response.ok) {
         alert('메시지가 성공적으로 수정되었습니다.');
         setEditingMessage(null);
-        fetchMessages(currentPage, 'all');
+        fetchMessages(currentPage, selectedStatus);
       } else {
         alert(data.error || '수정 중 오류가 발생했습니다.');
       }
@@ -127,7 +127,7 @@ export default function AdminPage() {
       
       if (response.ok) {
         alert('메시지가 성공적으로 삭제되었습니다.');
-        fetchMessages(currentPage, 'all');
+        fetchMessages(currentPage, selectedStatus);
       } else {
         alert(data.error || '삭제 중 오류가 발생했습니다.');
       }
@@ -155,11 +155,11 @@ export default function AdminPage() {
     updateMessage(editingMessage.id, editText, true);
   };
 
-  // 상태 변경 시 메시지 다시 불러오기 (현재 사용되지 않음)
-  // useEffect(() => {
-  //   setCurrentPage(1);
-  //   fetchMessages(1, selectedStatus);
-  // }, [selectedStatus]);
+  // 상태 변경 시 메시지 다시 불러오기
+  useEffect(() => {
+    setCurrentPage(1);
+    fetchMessages(1, selectedStatus);
+  }, [selectedStatus]);
 
   // 탭 변경 시 데이터 로드
   useEffect(() => {
@@ -171,7 +171,7 @@ export default function AdminPage() {
   // 페이지 변경
   const changePage = (page: number) => {
     setCurrentPage(page);
-    fetchMessages(page, 'all');
+    fetchMessages(page, selectedStatus);
   };
 
   // 상태별 색상
