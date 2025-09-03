@@ -155,11 +155,11 @@ export default function AdminPage() {
     updateMessage(editingMessage.id, editText, true);
   };
 
-  // 상태 변경 시 메시지 다시 불러오기
-  useEffect(() => {
-    setCurrentPage(1);
-    fetchMessages(1, selectedStatus);
-  }, [selectedStatus]);
+  // 상태 변경 시 메시지 다시 불러오기 (현재 사용되지 않음)
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  //   fetchMessages(1, selectedStatus);
+  // }, [selectedStatus]);
 
   // 탭 변경 시 데이터 로드
   useEffect(() => {
