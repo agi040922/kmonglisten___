@@ -41,7 +41,7 @@ export default function AdminPage() {
   const [messages, setMessages] = useState<VoiceMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  // const [selectedStatus, setSelectedStatus] = useState<string>('all'); // 현재 사용되지 않음
   const [editingMessage, setEditingMessage] = useState<VoiceMessage | null>(null);
   const [editText, setEditText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
