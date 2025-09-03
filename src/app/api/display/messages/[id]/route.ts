@@ -4,12 +4,13 @@ import pool from '@/lib/db';
 // PUT: 전광판 메시지 수정
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const client = await pool.connect();
   
   try {
-    const id = parseInt(params.id);
+    const resolvedParams = await params;
+    const id = parseInt(resolvedParams.id);
     const { message_text, is_active, display_order } = await request.json();
     
     if (isNaN(id)) {
@@ -90,12 +91,13 @@ export async function PUT(
 // DELETE: 전광판 메시지 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const client = await pool.connect();
   
   try {
-    const id = parseInt(params.id);
+    const resolvedParams = await params;
+    const id = parseInt(resolvedParams.id);
     
     if (isNaN(id)) {
       return NextResponse.json(
