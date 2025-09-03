@@ -102,7 +102,7 @@ export default function AdminPage() {
       if (response.ok) {
         alert('메시지가 성공적으로 수정되었습니다.');
         setEditingMessage(null);
-        fetchMessages(currentPage, selectedStatus);
+        fetchMessages(currentPage, 'all');
       } else {
         alert(data.error || '수정 중 오류가 발생했습니다.');
       }
@@ -127,7 +127,7 @@ export default function AdminPage() {
       
       if (response.ok) {
         alert('메시지가 성공적으로 삭제되었습니다.');
-        fetchMessages(currentPage, selectedStatus);
+        fetchMessages(currentPage, 'all');
       } else {
         alert(data.error || '삭제 중 오류가 발생했습니다.');
       }
@@ -171,7 +171,7 @@ export default function AdminPage() {
   // 페이지 변경
   const changePage = (page: number) => {
     setCurrentPage(page);
-    fetchMessages(page, selectedStatus);
+    fetchMessages(page, 'all');
   };
 
   // 상태별 색상
