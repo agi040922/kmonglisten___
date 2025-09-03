@@ -21,7 +21,7 @@ export async function PUT(
     
     // 업데이트할 필드들을 동적으로 구성
     const updates: string[] = [];
-    const values: (string | number | boolean)[] = [];
+    const values: any[] = [];
     let paramCount = 1;
     
     if (message_text !== undefined) {

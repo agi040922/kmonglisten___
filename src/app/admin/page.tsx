@@ -41,7 +41,7 @@ export default function AdminPage() {
   const [messages, setMessages] = useState<VoiceMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [selectedStatus] = useState<string>('all'); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [editingMessage, setEditingMessage] = useState<VoiceMessage | null>(null);
   const [editText, setEditText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
