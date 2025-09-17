@@ -17,6 +17,8 @@ export default function DisplayScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
 
   // 글자 수에 따른 텍스트 크기 결정
   const getTextSizeClass = (text: string) => {
@@ -34,7 +36,7 @@ export default function DisplayScreen() {
   };
 
   // 전광판 메시지 불러오기
-  const fetchDisplayMessages = async () => {
+  const fetchDisplayMessages = async (isInitialLoad = false) => {
     try {
       const response = await fetch('/api/display/messages');
       const data = await response.json();
@@ -46,23 +48,43 @@ export default function DisplayScreen() {
         if (activeMessages.length > 0) {
           setCurrentMessage(activeMessages[0].message_text);
         }
+        
+        // 초기 로딩 시에만 페이드 인 효과 적용
+        if (isInitialLoad) {
+          setTimeout(() => {
+            setIsVisible(true);
+          }, 100);
+        }
       }
     } catch (error) {
       console.error('메시지 로딩 오류:', error);
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setLoading(false);
+      }
     }
   };
 
-  // 메시지 순환 표시
+  // 메시지 순환 표시 (페이드 효과 포함)
   useEffect(() => {
     if (messages.length > 1) {
       const interval = setInterval(() => {
-        setCurrentIndex((prevIndex) => {
-          const nextIndex = (prevIndex + 1) % messages.length;
-          setCurrentMessage(messages[nextIndex].message_text);
-          return nextIndex;
-        });
+        // 페이드 아웃
+        setIsVisible(false);
+        
+        // 500ms 후 텍스트 변경 및 페이드 인
+        setTimeout(() => {
+          setCurrentIndex((prevIndex) => {
+            const nextIndex = (prevIndex + 1) % messages.length;
+            setCurrentMessage(messages[nextIndex].message_text);
+            return nextIndex;
+          });
+          
+          // 텍스트 변경 후 페이드 인
+          setTimeout(() => {
+            setIsVisible(true);
+          }, 50); // 약간의 지연으로 자연스러운 효과
+        }, 500); // 페이드 아웃 완료 후 텍스트 변경
       }, 5000); // 5초마다 메시지 변경
 
       return () => clearInterval(interval);
@@ -71,7 +93,8 @@ export default function DisplayScreen() {
 
   // 컴포넌트 마운트 시 메시지 로드
   useEffect(() => {
-    fetchDisplayMessages();
+    // 초기 로딩
+    fetchDisplayMessages(true);
     
     // 배경 이미지 로드 확인
     const img = new Image();
@@ -82,8 +105,8 @@ export default function DisplayScreen() {
     };
     img.src = '/최종송출화면.png';
     
-    // 30초마다 새로운 메시지 확인
-    const refreshInterval = setInterval(fetchDisplayMessages, 30000);
+    // 30초마다 새로운 메시지 확인 (초기 로딩이 아님)
+    const refreshInterval = setInterval(() => fetchDisplayMessages(false), 30000);
     
     return () => clearInterval(refreshInterval);
   }, []);
@@ -114,13 +137,17 @@ export default function DisplayScreen() {
           {currentMessage ? (
             <div className="space-y-6">
               {/* 메인 메시지 */}
-              <h1 className={`${getTextSizeClass(currentMessage)} font-bold text-gray-900 leading-tight break-keep drop-shadow-lg`}
-                  style={{ textShadow: '2px 2px 4px rgba(255,255,255,0.8), 0 0 10px rgba(255,255,255,0.5)' }}>
+              <h1 className={`${getTextSizeClass(currentMessage)} font-bold text-gray-900 leading-tight break-keep drop-shadow-lg transition-all duration-500 ease-in-out transform`}
+                  style={{ 
+                    textShadow: '2px 2px 4px rgba(255,255,255,0.8), 0 0 10px rgba(255,255,255,0.5)',
+                    opacity: isVisible ? 1 : 0,
+                    transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.95)'
+                  }}>
                 {currentMessage}
               </h1>
               
               {/* 메시지 인디케이터 */}
-              {messages.length > 1 && (
+              {/* {messages.length > 1 && (
                 <div className="flex justify-center space-x-2 mt-8">
                   {messages.map((_, index) => (
                     <div
@@ -133,10 +160,10 @@ export default function DisplayScreen() {
                     />
                   ))}
                 </div>
-              )}
+              )} */}
               
               {/* 하단 정보 */}
-              <div className="text-gray-800 text-lg mt-8 drop-shadow-lg">
+              {/* <div className="text-gray-800 text-lg mt-8 drop-shadow-lg">
                 <p className="font-semibold" 
                    style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.7)' }}>
                   마음의 전화
@@ -145,10 +172,14 @@ export default function DisplayScreen() {
                    style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.7)' }}>
                   {messages.length > 0 && `${currentIndex + 1} / ${messages.length}`}
                 </p>
-              </div>
+              </div> */}
             </div>
           ) : (
-            <div className="text-gray-900">
+            <div className="text-gray-900 transition-all duration-500 ease-in-out transform"
+                 style={{ 
+                   opacity: isVisible ? 1 : 0,
+                   transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.95)'
+                 }}>
               <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 drop-shadow-lg"
                   style={{ textShadow: '2px 2px 4px rgba(255,255,255,0.8), 0 0 10px rgba(255,255,255,0.5)' }}>
                 마음의 전화
