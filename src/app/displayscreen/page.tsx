@@ -80,7 +80,7 @@ export default function DisplayScreen() {
       console.error('배경 이미지 로드 실패');
       setImageLoaded(false);
     };
-    img.src = '/이음캠페인-전광판.png';
+    img.src = '/최종송출화면.png';
     
     // 30초마다 새로운 메시지 확인
     const refreshInterval = setInterval(fetchDisplayMessages, 30000);
@@ -102,7 +102,7 @@ export default function DisplayScreen() {
         imageLoaded ? '' : 'bg-gradient-to-br from-blue-50 to-indigo-100'
       }`}
       style={imageLoaded ? {
-        backgroundImage: `url('/이음캠페인-전광판.png')`,
+        backgroundImage: `url('/최종송출화면.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
