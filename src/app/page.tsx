@@ -8,6 +8,7 @@ export default function Home() {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isPlayingIntro, setIsPlayingIntro] = useState(false);
+  const [isPlayingSOS, setIsPlayingSOS] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -122,17 +123,34 @@ export default function Home() {
 
   // SOS마음의 전화 클릭 핸들러
   const handleSOSAreaClick = () => {
+    if (isPlayingSOS) return; // 이미 재생 중이면 무시
+    
+    setIsPlayingSOS(true);
     const audio = new Audio('/마음의전화3_마음의전화 소개.wav');
     
+    audio.onended = () => {
+      setIsPlayingSOS(false);
+    };
+    
     audio.onerror = () => {
+      setIsPlayingSOS(false);
       console.error('SOS 오디오 재생 실패');
       alert('오디오 파일을 재생할 수 없습니다.');
     };
     
     audio.play().catch(error => {
+      setIsPlayingSOS(false);
       console.error('SOS 오디오 재생 오류:', error);
       alert('오디오 파일을 재생할 수 없습니다.');
     });
+  };
+
+  // 다시 녹음 핸들러
+  const handleReRecord = () => {
+    setAudioBlob(null);
+    setRecordingTime(0);
+    // 바로 새로운 녹음 시작
+    handleRecordingAreaClick();
   };
 
   // 컴포넌트 언마운트 시 타이머 정리
@@ -151,7 +169,7 @@ export default function Home() {
         <img 
           src="/최종메인화면.jpg" 
           alt="Be:liveU 메인화면"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
         />
         
         {/* 반응형 클릭 가능한 영역들 */}
@@ -159,13 +177,12 @@ export default function Home() {
         <div 
           className="absolute cursor-pointer"
           style={{
-            left: 'calc(78% - 80px)', // 중앙에서 28% 오른쪽으로 이동
+            left: 'calc(72% - 80px)', // 중앙에서 22% 오른쪽으로 이동 (살짝 왼쪽으로 조정)
             top: 'calc(30% - 60px)',  // 상단 30% 위치
             width: '160px', 
             height: '120px',
             borderRadius: '50%',
-            // 개발시 영역 확인용 (나중에 제거 가능)
-            // backgroundColor: 'rgba(255, 0, 0, 0.3)'
+            // backgroundColor: 'rgba(255, 0, 0, 0.3)' // 개발시 영역 확인용
           }}
           onClick={handleRecordingAreaClick}
           title="음원메세지 남기기"
@@ -175,20 +192,19 @@ export default function Home() {
         <div 
           className="absolute cursor-pointer"
           style={{
-            left: 'calc(78% - 80px)', // 중앙에서 28% 오른쪽으로 이동
-            top: 'calc(75% - 60px)',  // 하단 75% 위치
+            left: 'calc(75% - 80px)', // 기존보다 오른쪽으로 이동
+            top: 'calc(65% - 60px)',  // 기존보다 위로 이동
             width: '160px', 
             height: '120px',
             borderRadius: '50%',
-            // 개발시 영역 확인용 (나중에 제거 가능)
-            // backgroundColor: 'rgba(0, 0, 255, 0.3)'
+            // backgroundColor: 'rgba(0, 0, 255, 0.3)' // 개발시 영역 확인용
           }}
           onClick={handleSOSAreaClick}
           title="SOS마음의 전화"
         />
 
         {/* 상태 표시 오버레이 */}
-        {(isPlayingIntro || isRecording || audioBlob) && (
+        {(isPlayingIntro || isPlayingSOS || isRecording || audioBlob) && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-xl max-w-md mx-auto">
               {isPlayingIntro && (
@@ -196,6 +212,14 @@ export default function Home() {
                   <div className="text-2xl mb-4">🔊</div>
                   <p className="text-lg font-medium text-gray-800">안내음성을 재생 중입니다...</p>
                   <p className="text-sm text-gray-600 mt-2">재생이 끝나면 자동으로 녹음이 시작됩니다</p>
+                </div>
+              )}
+              
+              {isPlayingSOS && (
+                <div className="text-center">
+                  <div className="text-2xl mb-4">📞</div>
+                  <p className="text-lg font-medium text-gray-800">SOS 마음의 전화</p>
+                  <p className="text-sm text-gray-600 mt-2">소개 음성을 재생 중입니다...</p>
                 </div>
               )}
               
@@ -237,7 +261,7 @@ export default function Home() {
                       {isUploading ? '전송 중...' : '전송하기'}
                     </button>
                     <button
-                      onClick={() => setAudioBlob(null)}
+                      onClick={handleReRecord}
                       className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-full transition-all duration-200"
                     >
                       다시 녹음
