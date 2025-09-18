@@ -18,20 +18,43 @@ export default function DisplayScreen() {
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [screenWidth, setScreenWidth] = useState(0);
+  const [screenHeight, setScreenHeight] = useState(0);
 
 
-  // 글자 수에 따른 텍스트 크기 결정
+  // 16:10 비율과 화면 크기에 최적화된 텍스트 크기 결정
   const getTextSizeClass = (text: string) => {
     const length = text.length;
+    const aspectRatio = screenWidth / screenHeight;
+    const isWideScreen = aspectRatio >= 1.5; // 16:10 = 1.6, 16:9 = 1.78
     
-    if (length <= 10) {
-      return 'text-3xl md:text-5xl lg:text-6xl'; // 짧은 텍스트 - 큰 크기
-    } else if (length <= 20) {
-      return 'text-2xl md:text-4xl lg:text-5xl'; // 중간 텍스트 - 중간 크기
+    // 넓은 화면에서는 더 큰 텍스트 사용
+    const sizeMultiplier = isWideScreen ? 1 : 0.8;
+    
+    if (length <= 8) {
+      return isWideScreen 
+        ? 'text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl 2xl:text-[12rem]' 
+        : 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl';
+    } else if (length <= 15) {
+      return isWideScreen
+        ? 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl'
+        : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl';
+    } else if (length <= 25) {
+      return isWideScreen
+        ? 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl'
+        : 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl';
     } else if (length <= 40) {
-      return 'text-xl md:text-3xl lg:text-4xl'; // 긴 텍스트 - 작은 크기
+      return isWideScreen
+        ? 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl'
+        : 'text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl';
+    } else if (length <= 60) {
+      return isWideScreen
+        ? 'text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl'
+        : 'text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl';
     } else {
-      return 'text-lg md:text-2xl lg:text-3xl'; // 매우 긴 텍스트 - 매우 작은 크기
+      return isWideScreen
+        ? 'text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl'
+        : 'text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl';
     }
   };
 
@@ -91,6 +114,22 @@ export default function DisplayScreen() {
     }
   }, [messages]);
 
+  // 화면 크기 추적
+  useEffect(() => {
+    const updateScreenSize = () => {
+      setScreenWidth(window.innerWidth);
+      setScreenHeight(window.innerHeight);
+    };
+
+    // 초기 화면 크기 설정
+    updateScreenSize();
+
+    // 리사이즈 이벤트 리스너 추가
+    window.addEventListener('resize', updateScreenSize);
+    
+    return () => window.removeEventListener('resize', updateScreenSize);
+  }, []);
+
   // 컴포넌트 마운트 시 메시지 로드
   useEffect(() => {
     // 초기 로딩
@@ -120,28 +159,44 @@ export default function DisplayScreen() {
   }
 
   return (
-    <div 
-      className={`min-h-screen relative flex items-center justify-center ${
-        imageLoaded ? '' : 'bg-gradient-to-br from-blue-50 to-indigo-100'
-      }`}
-      style={imageLoaded ? {
-        backgroundImage: `url('/최종송출화면.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      } : {}}
-    >
-      {/* 메시지 표시 영역 */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-8">
-        <div className="p-12 text-center">
+    <div className="min-h-screen w-full relative overflow-hidden">
+      {/* 배경 이미지 - 16:10 비율 최적화 */}
+      {imageLoaded && (
+        <div 
+          className="absolute inset-0 w-full h-full bg-black"
+          style={{
+            backgroundImage: `url('/최종송출화면.png')`,
+            backgroundSize: 'contain', // 이미지 전체가 보이도록 contain 사용
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            width: '100%',
+            height: '100%',
+          }}
+        />
+      )}
+      
+      {/* 폴백 배경 */}
+      {!imageLoaded && (
+        <div className="absolute inset-0 bg-black" />
+      )}
+
+      {/* 컨텐츠 오버레이 - 메시지 표시 영역 */}
+      <div className="relative z-10 min-h-screen w-full flex items-center justify-center px-4 sm:px-6 md:px-8 lg:px-12">
+        <div className="w-full max-w-[95vw] text-center overflow-hidden">
           {currentMessage ? (
             <div className="space-y-6">
               {/* 메인 메시지 */}
-              <h1 className={`${getTextSizeClass(currentMessage)} font-bold text-gray-900 leading-tight break-keep drop-shadow-lg transition-all duration-500 ease-in-out transform`}
+              <h1 className={`${getTextSizeClass(currentMessage)} font-bold text-gray-900 leading-tight break-keep drop-shadow-lg transition-all duration-500 ease-in-out transform w-full overflow-hidden`}
                   style={{ 
                     textShadow: '2px 2px 4px rgba(255,255,255,0.8), 0 0 10px rgba(255,255,255,0.5)',
                     opacity: isVisible ? 1 : 0,
-                    transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.95)'
+                    transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.95)',
+                    wordBreak: 'keep-all',
+                    lineHeight: '1.1',
+                    maxWidth: '100%',
+                    whiteSpace: 'pre-wrap',
+                    overflowWrap: 'break-word',
+                    hyphens: 'auto'
                   }}>
                 {currentMessage}
               </h1>
@@ -180,12 +235,24 @@ export default function DisplayScreen() {
                    opacity: isVisible ? 1 : 0,
                    transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.95)'
                  }}>
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 drop-shadow-lg"
-                  style={{ textShadow: '2px 2px 4px rgba(255,255,255,0.8), 0 0 10px rgba(255,255,255,0.5)' }}>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-bold mb-6 drop-shadow-lg w-full overflow-hidden"
+                  style={{ 
+                    textShadow: '2px 2px 4px rgba(255,255,255,0.8), 0 0 10px rgba(255,255,255,0.5)',
+                    wordBreak: 'keep-all',
+                    lineHeight: '1.1',
+                    maxWidth: '100%',
+                    whiteSpace: 'pre-wrap',
+                    overflowWrap: 'break-word',
+                    hyphens: 'auto'
+                  }}>
                 마음의 전화
               </h1>
-              <p className="text-lg md:text-xl lg:text-2xl text-gray-700 drop-shadow-lg"
-                 style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.7)' }}>
+              <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl text-gray-700 drop-shadow-lg w-full overflow-hidden"
+                 style={{ 
+                   textShadow: '1px 1px 2px rgba(255,255,255,0.7)',
+                   wordBreak: 'keep-all',
+                   maxWidth: '100%'
+                 }}>
                 표시할 메시지가 없습니다
               </p>
             </div>
